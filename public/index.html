@@ -26,6 +26,8 @@
   <meta name="codelab" content="your-first-pwa-v3">
   <link rel="stylesheet" type="text/css" href="/styles/inline.css">
   <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+  <script src='https://api.mapbox.com/mapbox-gl-js/v1.3.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v1.3.1/mapbox-gl.css' rel='stylesheet' />
 
   <!-- CODELAB: Add link rel manifest -->
   <!-- CODELAB: Add iOS meta tags and icons -->
@@ -54,6 +56,7 @@
       <span class="icon add"></span>
     </button>
 
+    <div id='map' style='width: 100%; height: 100%;'></div>
     <div id="weather-template" class="weather-card" hidden>
       <div class="card-spinner">
         <svg viewBox="0 0 32 32" width="32" height="32">

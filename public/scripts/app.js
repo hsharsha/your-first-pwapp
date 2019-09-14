@@ -239,11 +239,21 @@ function loadLocationList() {
   return locations;
 }
 
+
+/* TODO get rid of these global variables */
+var map = null;
 /**
  * Initialize the app, gets the list of locations from local storage, then
  * renders the initial data.
  */
 function init() {
+  mapboxgl.accessToken = 'pk.eyJ1IjoiaGFyc2hhaHMiLCJhIjoiY2swZGNrZW1uMDZnczNmcWRkeXBiYTFjZCJ9.s4NlcWE9u6cEshAgtK4HTg';
+  map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11?optimized=true',
+     zoom: 1,
+  });
+
   // Get the location list, and update the UI.
   weatherApp.selectedLocations = loadLocationList();
   updateData();
