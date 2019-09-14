@@ -239,12 +239,19 @@ function loadLocationList() {
   return locations;
 }
 
+function showPositionOnMap(position) {
+  map.flyTo({center:[position.longitude, position.latitude]})
+  if (mapMarker !== null) mapMarker.remove()
+  mapMarker = new mapboxgl.Marker()
+    .setLngLat([position.longitude, position.latitude])
+    .addTo(map);
+  const location = {label:'label', geo: position.latitude + ',' + position.longitude}
+ }
+
+
 function success(pos) {
   var crd = pos.coords;
-  console.log('Your current position is:');
-  console.log(`Latitude : ${crd.latitude}`);
-  console.log(`Longitude: ${crd.longitude}`);
-  console.log(`More or less ${crd.accuracy} meters.`);
+  showPositionOnMap(crd);
   return crd;
 }
 
@@ -254,6 +261,7 @@ function error(err) {
 
 /* TODO get rid of these global variables */
 var map = null;
+var mapMarker = null
 /**
  * Initialize the app, gets the list of locations from local storage, then
  * renders the initial data.
@@ -265,6 +273,10 @@ function init() {
     style: 'mapbox://styles/mapbox/streets-v11?optimized=true',
      zoom: 1,
   });
+  map.on('click', function (e) {
+    showPositionOnMap({longitude:e.lngLat.lng, latitude:e.lngLat.lat});
+  });
+
 
   const options = {
     enableHighAccuracy: true,
