@@ -38,24 +38,21 @@
   <header class="header">
     <h1>
       Weather PWA
-      <a href="https://darksky.net/poweredby/" class="powered-by">
-        Powered by Dark Sky
-      </a>
+      <div class="powered-by"> Powered by
+        <a href="https://darksky.net/poweredby/">Dark Sky, </a>
+        <a href="https://www.mapbox.com">mapbox</a> and
+        <a href="https://g.co/codelabs/pwa">https://g.co/codelabs/pwa</a>
+      </div>
     </h1>
     <button id="butInstall" aria-label="Install" hidden></button>
-    <button id="butRefresh" aria-label="Refresh"></button>
+    <button id="butRefresh" aria-label="Refresh" hidden></button>
   </header>
 
   <main class="main">
 
-    <button id="butAdd" class="fab" aria-label="Add">
+    <button id="butAdd" class="fab" aria-label="Add" hidden>
       <span class="icon add"></span>
     </button>
-
-    <div id="about" class="weather-card">
-      <b>Your First Progressive Web App Codelab</b><br>
-      Get started at <a href="https://g.co/codelabs/pwa">https://g.co/codelabs/pwa</a>.
-    </div>
 
     <div id="weather-template" class="weather-card" hidden>
       <div class="card-spinner">
