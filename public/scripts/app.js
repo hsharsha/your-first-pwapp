@@ -239,6 +239,18 @@ function loadLocationList() {
   return locations;
 }
 
+function success(pos) {
+  var crd = pos.coords;
+  console.log('Your current position is:');
+  console.log(`Latitude : ${crd.latitude}`);
+  console.log(`Longitude: ${crd.longitude}`);
+  console.log(`More or less ${crd.accuracy} meters.`);
+  return crd;
+}
+
+function error(err) {
+  console.warn(`ERROR(${err.code}): ${err.message}`);
+}
 
 /* TODO get rid of these global variables */
 var map = null;
@@ -254,6 +266,14 @@ function init() {
      zoom: 1,
   });
 
+  const options = {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0
+  };
+
+  // Use geo location api to get current geo location
+  navigator.geolocation.getCurrentPosition(success, error, options);
   // Get the location list, and update the UI.
   weatherApp.selectedLocations = loadLocationList();
   updateData();
