@@ -406,6 +406,9 @@ body {
   color: #666;
 }
 
+.mapboxgl-popup {
+    max-width: 600px !important;
+}
 /**
  * Media query to adjust size of content for small screens
  */
