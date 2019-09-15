@@ -176,8 +176,21 @@ function getForecastFromNetwork(coords) {
  * @return {Object} The weather forecast, if the request fails, return null.
  */
 function getForecastFromCache(coords) {
-  // CODELAB: Add code to get weather forecast from the caches object.
-
+  if (!('caches' in window)) {
+    return null;
+  }
+  const url = `${window.location.origin}/forecast/${coords}`;
+  return caches.match(url)
+    .then((response) => {
+      if (response) {
+        return response.json();
+      }
+      return null;
+    })
+    .catch((err) => {
+      console.error('Error getting data from cache', err);
+      return null;
+    });
 }
 
 /**
@@ -211,11 +224,26 @@ function updateData(mapLoc) {
   Object.keys(weatherApp.selectedLocations).forEach((key) => {
     const location = weatherApp.selectedLocations[key];
     const card = getForecastCard(location);
-    // CODELAB: Add code to call getForecastFromCache
-
+    /*getForecastFromCache(location.geo)
+      .then((forecast) => {
+          if (forecast === null) {
+            console.log('From cache Null forecast bailing out')
+            return;
+          }
+          location.label = forecast.timezone
+          const renderDiv = renderForecast(card, forecast);
+          new mapboxgl.Popup()
+            .setLngLat(mapLoc)
+            .setHTML(renderDiv.innerHTML)
+            .addTo(map);
+      });*/
     // Get the forecast data from the network.
     getForecastFromNetwork(location.geo)
         .then((forecast) => {
+          if (forecast === null) {
+            console.log('From network Null forecast bailing out')
+            return;
+          }
           // Update location label with forecast timezone
           location.label = forecast.timezone
           const renderDiv = renderForecast(card, forecast);
@@ -313,12 +341,12 @@ function init() {
   //weatherApp.selectedLocations = loadLocationList();
 
   // Set up the event handlers for all of the buttons.
-  document.getElementById('butRefresh').addEventListener('click', updateData);
+  /*document.getElementById('butRefresh').addEventListener('click', updateData);
   document.getElementById('butAdd').addEventListener('click', toggleAddDialog);
   document.getElementById('butDialogCancel')
       .addEventListener('click', toggleAddDialog);
   document.getElementById('butDialogAdd')
-      .addEventListener('click', addLocation);
+      .addEventListener('click', addLocation);*/
 }
 
 init();
