@@ -89,6 +89,7 @@ function renderForecast(card, data) {
   cardLastUpdatedElem.textContent = data.currently.time;
 
   // Render the forecast data into the card.
+  card.querySelector('.location').textContent = data.timezone;
   card.querySelector('.description').textContent = data.currently.summary;
   const forecastFrom = luxon.DateTime
       .fromSeconds(data.currently.time)
@@ -193,7 +194,7 @@ function getForecastCard(location) {
  * Gets the latest weather forecast data and updates each card with the
  * new data.
  */
-function updateData() {
+function updateData(mapLoc) {
   Object.keys(weatherApp.selectedLocations).forEach((key) => {
     const location = weatherApp.selectedLocations[key];
     const card = getForecastCard(location);
@@ -202,7 +203,13 @@ function updateData() {
     // Get the forecast data from the network.
     getForecastFromNetwork(location.geo)
         .then((forecast) => {
+          // Update location label with forecast timezone
+          location.label = forecast.timezone
           renderForecast(card, forecast);
+          new mapboxgl.Popup()
+            .setLngLat(mapLoc)
+            .setHTML(JSON.stringify(forecast))
+            .addTo(map);
         });
   });
 }
@@ -222,7 +229,7 @@ function saveLocationList(locations) {
  *
  * @return {Array}
  */
-function loadLocationList() {
+function loadLocationList(location) {
   let locations = localStorage.getItem('locationList');
   if (locations) {
     try {
@@ -232,9 +239,10 @@ function loadLocationList() {
     }
   }
   if (!locations || Object.keys(locations).length === 0) {
-    const key = '40.7720232,-73.9732319';
+    const key = location.geo;
     locations = {};
-    locations[key] = {label: 'New York City', geo: '40.7720232,-73.9732319'};
+    // Update label to timezone information from forecast later
+    locations[key] = {label: 'dummyTimezone', geo: location.geo};
   }
   return locations;
 }
@@ -245,7 +253,9 @@ function showPositionOnMap(position) {
   mapMarker = new mapboxgl.Marker()
     .setLngLat([position.longitude, position.latitude])
     .addTo(map);
-  const location = {label:'label', geo: position.latitude + ',' + position.longitude}
+  const location = {label:'dummyTimezone', geo: position.latitude + ',' + position.longitude}
+  weatherApp.selectedLocations = loadLocationList(location);
+  updateData([position.longitude, position.latitude]);
  }
 
 
@@ -287,8 +297,7 @@ function init() {
   // Use geo location api to get current geo location
   navigator.geolocation.getCurrentPosition(success, error, options);
   // Get the location list, and update the UI.
-  weatherApp.selectedLocations = loadLocationList();
-  updateData();
+  //weatherApp.selectedLocations = loadLocationList();
 
   // Set up the event handlers for all of the buttons.
   document.getElementById('butRefresh').addEventListener('click', updateData);
