@@ -138,6 +138,19 @@ function renderForecast(card, data) {
   if (spinner) {
     card.removeChild(spinner);
   }
+
+  // HACK do this right way
+  // Create a parent div to push the weather card into mapbox poppup
+  const parentdiv = document.createElement('div');
+  const popupcardContainer = document.createElement('div');
+  popupcardContainer.className = 'weather-card';
+  popupcardContainer.innerHTML = card.innerHTML;
+  parentdiv.appendChild(popupcardContainer);
+  // This is hack to remove the card from the html div element
+  card.innerHTML='';
+  card.classList.remove('weather-card');
+
+  return parentdiv;
 }
 
 /**
@@ -205,10 +218,10 @@ function updateData(mapLoc) {
         .then((forecast) => {
           // Update location label with forecast timezone
           location.label = forecast.timezone
-          renderForecast(card, forecast);
+          const renderDiv = renderForecast(card, forecast);
           new mapboxgl.Popup()
             .setLngLat(mapLoc)
-            .setHTML(JSON.stringify(forecast))
+            .setHTML(renderDiv.innerHTML)
             .addTo(map);
         });
   });
