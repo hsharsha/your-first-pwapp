@@ -85,6 +85,14 @@ function removeLocation(evt) {
   showFavLocsfromLocatStorage(locs);
 }
 
+function showLocation(evt) {
+  const e = document.getElementById("selectCityToAdd");
+  const key = e.options[e.selectedIndex].value;
+  const locs = getLocsfromLocalStorage();
+  toggleAddDialog()
+  showPositionOnMap(locs[key].coords);
+}
+
 function createPopupParentDiv(card) {
   const parentDiv = document.createElement('div');
   const popupcardContainer = document.createElement('div');
@@ -238,6 +246,7 @@ function getForecastCard(location) {
   return newCard;
 }
 
+var mapPopup = null;
 /**
  * Gets the latest weather forecast data and updates each card with the
  * new data.
@@ -254,7 +263,8 @@ function updateData(mapLoc) {
           }
           location.label = forecast.timezone
           const renderDiv = renderForecast(card, forecast);
-          new mapboxgl.Popup()
+          if (mapPopup !== null) mapPopup.remove();
+          mapPopup = new mapboxgl.Popup()
             .setLngLat(mapLoc)
             .setHTML(renderDiv.innerHTML)
             .addTo(map);
@@ -269,7 +279,8 @@ function updateData(mapLoc) {
           // Update location label with forecast timezone
           location.label = forecast.timezone
           const renderDiv = renderForecast(card, forecast);
-          new mapboxgl.Popup()
+          if (mapPopup !== null) mapPopup.remove();
+          mapPopup = new mapboxgl.Popup()
             .setLngLat(mapLoc)
             .setHTML(renderDiv.innerHTML)
             .addTo(map);
@@ -317,9 +328,9 @@ function showPositionOnMap(position) {
   mapMarker = new mapboxgl.Marker()
     .setLngLat([position.longitude, position.latitude])
     .addTo(map);
-  const location = {label:'dummyTimezone', geo: position.latitude + ',' + position.longitude}
+  const location = {label:'dummyTimezone', geo: position.latitude + ',' + position.longitude, coords: {longitude: position.longitude, latitude: position.latitude}}
   let locations = {}
-  locations[location.geo] = {label: location.label, geo: location.geo};
+  locations[location.geo] = {label: location.label, geo: location.geo, coords: location.coords};
   weatherApp.selectedLocations = locations;
   updateData([position.longitude, position.latitude]);
  }
@@ -370,11 +381,15 @@ function init() {
 
   // Set up the event handlers for all of the buttons.
   document.getElementById('butRefresh').addEventListener('click', updateCurGeoData);
-  document.getElementById('butAdd').addEventListener('click', addLocation);
+  document.getElementById('butAdd').addEventListener('click', toggleAddDialog);
   document.getElementById('butDialogCancel')
       .addEventListener('click', toggleAddDialog);
   document.getElementById('butDialogRemove')
       .addEventListener('click', removeLocation);
+  document.getElementById('butDialogShow')
+      .addEventListener('click', showLocation);
+  document.getElementById('butDialogAddFav')
+      .addEventListener('click', addLocation);
 }
 
 init();
