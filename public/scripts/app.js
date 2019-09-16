@@ -35,34 +35,66 @@ function toggleAddDialog() {
 function addLocation() {
   // Hide the dialog
   toggleAddDialog();
-  // Get the selected city
-  const select = document.getElementById('selectCityToAdd');
-  const selected = select.options[select.selectedIndex];
-  const geo = selected.value;
-  const label = selected.textContent;
-  const location = {label: label, geo: geo};
-  // Create a new card & get the weather data from the server
-  const card = getForecastCard(location);
-  getForecastFromNetwork(geo).then((forecast) => {
-    renderForecast(card, forecast);
+  Object.keys(weatherApp.selectedLocations).forEach((key) => {
+    const location = weatherApp.selectedLocations[key];
+    // Save the updated list of selected cities.
+    saveLocationList(location);
   });
-  // Save the updated list of selected cities.
-  weatherApp.selectedLocations[geo] = location;
-  saveLocationList(weatherApp.selectedLocations);
 }
 
+function getLocsfromLocalStorage() {
+  let locs = localStorage.getItem('locationList');
+  if (locs) {
+    try {
+      locs = JSON.parse(locs);
+    } catch (ex) {
+      locs = {};
+    }
+  } else {
+      locs = {};
+  }
+  return locs;
+}
+
+function showFavLocsfromLocatStorage(locs) {
+  const data = JSON.stringify(locs);
+  localStorage.setItem('locationList', data);
+
+  // Get dropdown element from DOM
+  const dropdown = document.getElementById("selectCityToAdd");
+  dropdown.length = 0;
+  // Loop through the array
+  for (const key in locs) {
+    // Append the element to the end of Array list
+    dropdown[dropdown.length] = new Option(locs[key].label, key);
+  }
+
+}
 /**
  * Event handler for .remove-city, removes a location from the list.
  *
  * @param {Event} evt
  */
 function removeLocation(evt) {
-  const parent = evt.srcElement.parentElement;
-  parent.remove();
-  if (weatherApp.selectedLocations[parent.id]) {
-    delete weatherApp.selectedLocations[parent.id];
-    saveLocationList(weatherApp.selectedLocations);
+  const e = document.getElementById("selectCityToAdd");
+  const delkey = e.options[e.selectedIndex].value;
+  const locs = getLocsfromLocalStorage();
+  if (locs[delkey]) {
+    delete locs[delkey]
   }
+  showFavLocsfromLocatStorage(locs);
+}
+
+function createPopupParentDiv(card) {
+  const parentDiv = document.createElement('div');
+  const popupcardContainer = document.createElement('div');
+  popupcardContainer.className = 'weather-card';
+  popupcardContainer.innerHTML = card.innerHTML;
+  parentDiv.appendChild(popupcardContainer);
+  // This is hack to remove the card from the html div element
+  card.classList.remove('weather-card');
+
+  return parentDiv;
 }
 
 /**
@@ -85,15 +117,7 @@ function renderForecast(card, data) {
   // If the data on the element is newer, skip the update.
   // TODO Duplicated code make it into a function
   if (lastUpdated >= data.currently.time) {
-    const parentdiv = document.createElement('div');
-    const popupcardContainer = document.createElement('div');
-    popupcardContainer.className = 'weather-card';
-    popupcardContainer.innerHTML = card.innerHTML;
-    parentdiv.appendChild(popupcardContainer);
-    // This is hack to remove the card from the html div element
-    card.classList.remove('weather-card');
-
-    return parentdiv;
+    return createPopupParentDiv(card);
   }
   cardLastUpdatedElem.textContent = data.currently.time;
 
@@ -150,15 +174,7 @@ function renderForecast(card, data) {
 
   // HACK do this right way
   // Create a parent div to push the weather card into mapbox poppup
-  const parentdiv = document.createElement('div');
-  const popupcardContainer = document.createElement('div');
-  popupcardContainer.className = 'weather-card';
-  popupcardContainer.innerHTML = card.innerHTML;
-  parentdiv.appendChild(popupcardContainer);
-  // This is hack to remove the card from the html div element
-  card.classList.remove('weather-card');
-
-  return parentdiv;
+  return createPopupParentDiv(card);
 }
 
 /**
@@ -217,8 +233,6 @@ function getForecastCard(location) {
   const newCard = document.getElementById('weather-template').cloneNode(true);
   newCard.querySelector('.location').textContent = location.label;
   newCard.setAttribute('id', id);
-  newCard.querySelector('.remove-city')
-      .addEventListener('click', removeLocation);
   document.querySelector('main').appendChild(newCard);
   //newCard.removeAttribute('hidden');
   return newCard;
@@ -269,8 +283,9 @@ function updateData(mapLoc) {
  * @param {Object} locations The list of locations to save.
  */
 function saveLocationList(locations) {
-  const data = JSON.stringify(locations);
-  localStorage.setItem('locationList', data);
+  const locs = getLocsfromLocalStorage();
+  locs[locations.geo] = locations
+  showFavLocsfromLocatStorage(locs);
 }
 
 /**
@@ -303,13 +318,15 @@ function showPositionOnMap(position) {
     .setLngLat([position.longitude, position.latitude])
     .addTo(map);
   const location = {label:'dummyTimezone', geo: position.latitude + ',' + position.longitude}
-  weatherApp.selectedLocations = loadLocationList(location);
+  let locations = {}
+  locations[location.geo] = {label: location.label, geo: location.geo};
+  weatherApp.selectedLocations = locations;
   updateData([position.longitude, position.latitude]);
  }
 
 
 function success(pos) {
-  var crd = pos.coords;
+  const crd = pos.coords;
   showPositionOnMap(crd);
   return crd;
 }
@@ -353,11 +370,11 @@ function init() {
 
   // Set up the event handlers for all of the buttons.
   document.getElementById('butRefresh').addEventListener('click', updateCurGeoData);
-  /*document.getElementById('butAdd').addEventListener('click', toggleAddDialog);
+  document.getElementById('butAdd').addEventListener('click', addLocation);
   document.getElementById('butDialogCancel')
       .addEventListener('click', toggleAddDialog);
-  document.getElementById('butDialogAdd')
-      .addEventListener('click', addLocation);*/
+  document.getElementById('butDialogRemove')
+      .addEventListener('click', removeLocation);
 }
 
 init();
