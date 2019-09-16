@@ -83,6 +83,7 @@ function removeLocation(evt) {
     delete locs[delkey]
   }
   showFavLocsfromLocatStorage(locs);
+  toggleAddDialog()
 }
 
 function showLocation(evt) {
