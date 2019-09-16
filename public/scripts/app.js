@@ -83,8 +83,17 @@ function renderForecast(card, data) {
   const lastUpdated = parseInt(cardLastUpdated);
 
   // If the data on the element is newer, skip the update.
+  // TODO Duplicated code make it into a function
   if (lastUpdated >= data.currently.time) {
-    return;
+    const parentdiv = document.createElement('div');
+    const popupcardContainer = document.createElement('div');
+    popupcardContainer.className = 'weather-card';
+    popupcardContainer.innerHTML = card.innerHTML;
+    parentdiv.appendChild(popupcardContainer);
+    // This is hack to remove the card from the html div element
+    card.classList.remove('weather-card');
+
+    return parentdiv;
   }
   cardLastUpdatedElem.textContent = data.currently.time;
 
@@ -147,7 +156,6 @@ function renderForecast(card, data) {
   popupcardContainer.innerHTML = card.innerHTML;
   parentdiv.appendChild(popupcardContainer);
   // This is hack to remove the card from the html div element
-  card.innerHTML='';
   card.classList.remove('weather-card');
 
   return parentdiv;
@@ -212,7 +220,7 @@ function getForecastCard(location) {
   newCard.querySelector('.remove-city')
       .addEventListener('click', removeLocation);
   document.querySelector('main').appendChild(newCard);
-  newCard.removeAttribute('hidden');
+  //newCard.removeAttribute('hidden');
   return newCard;
 }
 
@@ -224,7 +232,7 @@ function updateData(mapLoc) {
   Object.keys(weatherApp.selectedLocations).forEach((key) => {
     const location = weatherApp.selectedLocations[key];
     const card = getForecastCard(location);
-    /*getForecastFromCache(location.geo)
+    getForecastFromCache(location.geo)
       .then((forecast) => {
           if (forecast === null) {
             console.log('From cache Null forecast bailing out')
@@ -236,7 +244,7 @@ function updateData(mapLoc) {
             .setLngLat(mapLoc)
             .setHTML(renderDiv.innerHTML)
             .addTo(map);
-      });*/
+      });
     // Get the forecast data from the network.
     getForecastFromNetwork(location.geo)
         .then((forecast) => {
@@ -310,6 +318,17 @@ function error(err) {
   console.warn(`ERROR(${err.code}): ${err.message}`);
 }
 
+function updateCurGeoData() {
+  const options = {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0
+  };
+
+  // Use geo location api to get current geo location
+  navigator.geolocation.getCurrentPosition(success, error, options);
+}
+
 /* TODO get rid of these global variables */
 var map = null;
 var mapMarker = null
@@ -328,21 +347,13 @@ function init() {
     showPositionOnMap({longitude:e.lngLat.lng, latitude:e.lngLat.lat});
   });
 
-
-  const options = {
-    enableHighAccuracy: true,
-    timeout: 5000,
-    maximumAge: 0
-  };
-
-  // Use geo location api to get current geo location
-  navigator.geolocation.getCurrentPosition(success, error, options);
-  // Get the location list, and update the UI.
+  updateCurGeoData()
+    // Get the location list, and update the UI.
   //weatherApp.selectedLocations = loadLocationList();
 
   // Set up the event handlers for all of the buttons.
-  /*document.getElementById('butRefresh').addEventListener('click', updateData);
-  document.getElementById('butAdd').addEventListener('click', toggleAddDialog);
+  document.getElementById('butRefresh').addEventListener('click', updateCurGeoData);
+  /*document.getElementById('butAdd').addEventListener('click', toggleAddDialog);
   document.getElementById('butDialogCancel')
       .addEventListener('click', toggleAddDialog);
   document.getElementById('butDialogAdd')
